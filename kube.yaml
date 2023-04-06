@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Yaml file to create kubernetes cluster
+
+Parameters:
+    ClusterName:
+        Type: String
+        Default: nico-cluster
+    NumberOfWorkerNodes:
+        Type: Number
+        Default: 2
+    WorkerNodesInstanceType:
+        Type: String
+        Default: t2.micro
+    KubernetesVersion:
+        Type: String
+        Default: 1.25
+
+Resources:
+    EKSCluster:
+        Type: AWS::EKS::Cluster
+        Properties:
+            Name: !Ref ClusterName
+            Version: !Ref KubernetesVersion           
+            RoleArn: "arn:aws:iam::388328004932:role/AWSEKSRole"
+            ResourcesVpcConfig:
+                SecurityGroupIds:
+                - sg-0d8315f2e7a43714e
+                SubnetIds:
+                - subnet-0a31af885cfd8721d
+                - subnet-01b356a04735bdf93 
+                EndpointPublicAccess: true
+                EndpointPrivateAccess: false
+                PublicAccessCidrs: [ "0.0.0.0/0" ]
+    EksNodegroup:
+        Type: AWS::EKS::Nodegroup
+        DependsOn: EksCluster
+        Properties:
+            ClusterName: !Ref ClusterName
+            NodeRole: arn:aws:iam::388328004932:role/EKS_Cluster_Node1
+            ScalingConfig:
+                MinSize:
+                    Ref: NumberOfWorkerNodes
+                DesiredSize:
+                    Ref: NumberOfWorkerNodes
+                MaxSize:
+                    Ref: NumberOfWorkerNodes
